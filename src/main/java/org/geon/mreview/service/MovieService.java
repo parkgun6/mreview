@@ -2,6 +2,8 @@ package org.geon.mreview.service;
 
 import org.geon.mreview.dto.MovieDTO;
 import org.geon.mreview.dto.MovieImageDTO;
+import org.geon.mreview.dto.PageRequestDTO;
+import org.geon.mreview.dto.PageResultDTO;
 import org.geon.mreview.entity.Movie;
 import org.geon.mreview.entity.MovieImage;
 
@@ -13,6 +15,8 @@ import java.util.stream.Collectors;
 public interface MovieService {
 
     Long register(MovieDTO movieDTO);
+
+    PageResultDTO<MovieDTO, Object[]> getList(PageRequestDTO pageRequestDTO);
 
     default Map<String, Object> dtoToEntity(MovieDTO movieDTO) {
         Map<String, Object> entityMap = new HashMap<>();
@@ -40,5 +44,32 @@ public interface MovieService {
             entityMap.put("imgList", movieImagesList);
         }
         return entityMap;
+    }
+
+    default MovieDTO entityToDTO(
+                                    Movie movie,
+                                    List<MovieImage> movieImages,
+                                    Double avg,
+                                    Long reviewCnt) {
+        MovieDTO movieDTO = MovieDTO.builder()
+                .mno(movie.getMno())
+                .title(movie.getTitle())
+                .regDate(movie.getRegDate())
+                .modDate(movie.getModDate())
+                .build();
+
+        List<MovieImageDTO> movieImageDTOList = movieImages.stream().map(movieImage -> {
+            return MovieImageDTO.builder()
+                    .imgName(movieImage.getImgName())
+                    .uuid(movieImage.getUuid())
+                    .path(movieImage.getPath())
+                    .build();
+        }).collect(Collectors.toList());
+
+        movieDTO.setImageDTOList(movieImageDTOList);
+        movieDTO.setAvg(avg);
+        movieDTO.setReviewCnt(reviewCnt.intValue());
+
+        return movieDTO;
     }
 }
